@@ -1,12 +1,12 @@
 # 🛠️ scripts
 
-A personal collection of command-line utilities and shell scripts I use to automate, simplify, or speed up common tasks. This repo is an evolving toolbox primarily for macOS, but many scripts are portable to Linux.
+My personal collection of shell scripts I use to automate, simplify, or speed up daily tasks. This repo is an evolving toolbox primarily for macOS, but many scripts are portable to Linux.
 
 ## 📁 Organization
 
 - `choose/` — Scripts that integrate with [`choose-gui`](https://github.com/chipsenkbeil/choose) for fast fuzzy selection in a popup, similar to rofi or dmenu on linux.
-- `stuff/` — Stores things used by the scripts, such as a list of all emojis.
-- `term/` — Terminal-focused enhancements and productivity tools.
+- `stuff/` — Stores files used by the scripts, such as a list of all emojis.
+- `term/` — Terminal workflow enhancements and productivity tools.
 
 ## 🔧 Installation
 
@@ -28,7 +28,7 @@ source ~/.zshrc
 Some scripts rely on:
 - bash or zsh
 - choose-gui
-- ffmpeg
+- ffmpeg (for the cam script)
 - You probably already have these:
   - grep
   - cat
