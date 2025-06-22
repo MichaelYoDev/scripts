@@ -8,21 +8,6 @@ My personal collection of shell scripts I use to automate, simplify, or speed up
 - `stuff/` — Stores files used by the scripts, such as a list of all emojis.
 - `term/` — Terminal workflow enhancements and productivity tools.
 
-## 🔧 Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/MichaelYoDev/scripts.git
-cd scripts
-```
-Add it to your PATH:
-
-```bash
-echo 'export PATH="$HOME/path/to/scripts:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
 ## 🧰 Dependencies
 
 Some scripts rely on:
