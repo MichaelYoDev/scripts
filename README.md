@@ -1,6 +1,6 @@
 # scripts
 
-My personal collection of shell scripts I use to automate, simplify, or speed up daily tasks. This repo is an evolving toolbox primarily for macOS, but many scripts are portable to Linux.
+My personal collection of shell scripts I use to automate, simplify, or speed up daily tasks. These scripts are primarily for macOS, but many scripts are portable to Linux.
 
 ## Organization
 
@@ -16,6 +16,7 @@ My personal collection of shell scripts I use to automate, simplify, or speed up
   - grep
   - cat
   - sed
+- I bound many of these to hotkeys using [skhd](https://github.com/MichaelYoDev/.config/blob/master/yabai/skhdrc)
 
 ## Inspiration
 
