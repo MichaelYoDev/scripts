@@ -1,36 +1,51 @@
 #!/usr/bin/env bash
 
-NOTES_DIR="$HOME/Notes/QuickNotes"
-mkdir -p "$NOTES_DIR"
-NOTE_FILE="$NOTES_DIR/$(date '+%Y-%m-%d_%H-%M-%S').md"
+folder="$HOME/Notes/"
 
-{
-  echo "# Quick Note - $(date '+%Y-%m-%d %H:%M:%S')"
-  echo
-} > "$NOTE_FILE"
+opennote() {
+  osascript <<EOF
+    delay 1
 
-ESCAPED_NOTE_FILE=$(printf '%q' "$NOTE_FILE")
+    on is_running(appName)
+    	tell application "System Events" to (name of processes) contains appName
+    end is_running
 
-osascript <<EOF
-delay 1
+    if not is_running("kitty") then
+    	tell application "kitty" to activate
+    else
+    	tell application "System Events" to tell process "kitty"
+    		click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1
+    	end tell
+    end if
 
-on is_running(appName)
-	tell application "System Events" to (name of processes) contains appName
-end is_running
+    delay 0.2
 
-if not is_running("kitty") then
-	tell application "kitty" to activate
-else
-	tell application "System Events" to tell process "kitty"
-		click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1
-	end tell
-end if
-
-delay 0.2
-
-tell application "System Events"
-    keystroke "nvim "
-    keystroke "$NOTE_FILE"
-    key code 36 -- press return
-end tell
+    tell application "System Events"
+        keystroke "nvim "
+        keystroke "$folder/$1"
+        key code 36 -- press return
+    end tell
 EOF
+}
+
+newnote() {
+  name="$(echo "‎" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
+  : "${name:=$(date +%F_%T | tr ':' '-')}"
+  name="${name}.md"
+  opennote "$name"
+}
+
+selected() {
+  options="New"$'\n'"$(ls -1t "$folder")"
+  choice=$(printf "%s" "$options" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
+  case "$choice" in
+    New)
+        newnote ;;
+    *.md)
+        opennote "$choice";;
+    *)
+        exit ;;
+  esac
+}
+
+selected
