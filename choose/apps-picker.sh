@@ -2,7 +2,7 @@
 
 app_list=$(
   echo "Finder" # bro why can't they just put all the apps in the normal Applications folder
-  ls /Applications/ /Applications/Utilities/ /System/Applications/ /System/Applications/Utilities/ /Users/michaeloliveira/Applications/Kegworks 3>/dev/null | \
+  ls /Applications/ /Applications/Utilities/ /System/Applications/ /System/Applications/Utilities/ 3>/dev/null | \
     grep '\.app$' | sed 's/\.app$//'
 )
 
