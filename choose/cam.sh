@@ -11,4 +11,4 @@ selection=$(
 
 camera_index=$(echo "$selection" | grep -o '\[[0-9]\+\]' | tr -d '[]')
 
-ffplay -f avfoundation -framerate 30 -window_title Camera -video_size 1280x720 -i "${camera_index}:"
+ffplay -f avfoundation -framerate 30 -window_title Camera -video_size 1280x720 -i "${camera_index}:" -x 256 -y 144
