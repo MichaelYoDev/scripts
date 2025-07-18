@@ -5,7 +5,7 @@ choice=$(printf "kill\nsleep\nreboot\nshutdown" | choose -f "JetBrainsMono Nerd 
 case "$choice" in
   kill)
     ps -u "$USER" -o pid=,%cpu=,%mem=,args= | \
-      sort -k2 -nr | \
+      sort -k3 -nr | \
       awk '{pid=$1; cpu=$2; mem=$3; $1=$2=$3=""; printf "%-8s %-6s %-6s %s\n", pid, cpu, mem, $0}' | \
       choose -f "JetBrainsMono Nerd Font" -b "31748f" -c "eb6f92" -p "Kill process:" -w 35 -n 20 | \
       awk '{print $1}' | \

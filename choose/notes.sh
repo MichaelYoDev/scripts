@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-folder="$HOME/Notes/"
+folder="$HOME/Notes"
 
 opennote() {
   osascript <<EOF
