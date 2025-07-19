@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 folder="$HOME/Notes"
+term="Ghostty"
 
 opennote() {
   osascript <<EOF
@@ -10,10 +11,10 @@ opennote() {
     	tell application "System Events" to (name of processes) contains appName
     end is_running
 
-    if not is_running("kitty") then
-    	tell application "kitty" to activate
+    if not is_running("$term") then
+    	tell application "$term" to activate
     else
-    	tell application "System Events" to tell process "kitty"
+    	tell application "System Events" to tell process "$term"
     		click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1
     	end tell
     end if
