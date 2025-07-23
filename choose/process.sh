@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-choice=$(printf "kill\nsleep\nreboot\nshutdown" | choose -f "JetBrainsMono Nerd Font" -b "31748f" -c "eb6f92" -p "Select action:" -n 5)
+choice=$(printf "kill\nsleep\nreboot\nshutdown" | choose -f "JetBrainsMono Nerd Font" -b "31748f" -c "eb6f92" -p "Select action:" -n 5 -w 10)
 
 case "$choice" in
   kill)
