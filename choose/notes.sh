@@ -15,7 +15,7 @@ opennote() {
     	tell application "$term" to activate
     else
     	tell application "System Events" to tell process "$term"
-    		click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1
+    		click menu item "New Window" of menu 1 of menu bar item "File" of menu bar 1
     	end tell
     end if
 
