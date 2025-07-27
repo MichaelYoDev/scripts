@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-WALLS="$HOME/Wallpapers"
+WALLS="$HOME/Pictures/Wallpapers"
 
 wallpapers=$(find "$WALLS" -type f | sort)
 
