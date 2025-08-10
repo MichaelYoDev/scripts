@@ -1,38 +1,39 @@
 #!/usr/bin/env bash
 
-if [[ $# -eq 1 ]]; then
-    selected=$1
-else
-    selected=$(
-        find ~/.config ~/Desktop/code -mindepth 0 -maxdepth 2  -type d | \
-        sed "s|^$HOME/||" | \
-        fzf --no-color
-    )
+SEARCH_PATHS=(
+    "$HOME/.config"
+    "$HOME/Desktop/code"
+)
 
-    # Add home path back
-    if [[ -n "$selected" ]]; then
-        selected="$HOME/$selected"
+if [[ $# -eq 1 ]]; then
+    path=$1
+else
+    my_find() {
+        for path in "${SEARCH_PATHS[@]}"; do
+            find "$path" -mindepth 0 -maxdepth 2 -type d -not -path "$path/.git"
+        done | sed "s|^$HOME/||"
+    }
+    selected=$(my_find | fzf --tmux 50%,50% --no-color)
+
+    if [[ -n $selected ]]; then
+        path="$HOME/$selected"
     fi
 fi
 
-if [[ -z $selected ]]; then
+if [[ -z $path ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
-tmux_running=$(pgrep tmux)
+selected_name=$(basename "$path" | tr -s ".[:blank:]" "_" | tr "[:upper:]" "[:lower:]")
 
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-    tmux new-session -s $selected_name -c $selected
-    exit 0
-fi
+tmux_pid=$(pgrep tmux)
 
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-    tmux new-session -ds $selected_name -c $selected
+if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t "$selected_name" 2>/dev/null; then
+    tmux new-session -ds "$selected_name" -c "$path"
 fi
 
 if [[ -z $TMUX ]]; then
-    tmux attach -t $selected_name
+    tmux attach-session -t "$selected_name"
 else
-    tmux switch-client -t $selected_name
+    tmux switch-client -t "$selected_name"
 fi
