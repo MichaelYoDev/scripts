@@ -6,7 +6,7 @@ else
     dir=$(tmux run "echo #{pane_start_path}")
     selected=$(find $dir ~/Downloads ~/Desktop/School/25-26 -mindepth 1 -maxdepth 1 -type f \( -iname \*.png -o -iname \*.gif -o -iname \*.pdf -o -iname \*.jpg -o -iname \*.jpeg -o -iname \*.tiff \) | \
         sed "s|^$HOME/||" | \
-        fzf --no-color
+        fzf --tmux 50%,50% --no-color
     )
 
     # Add home path back
@@ -22,5 +22,4 @@ fi
 selected_name=$(basename "$selected" | tr . _)
 tmux_running=$(pgrep tmux)
 
-tmux new-window -n  $selected_name -d open $selected
-
+tmux new-window -n  "$selected_name" -d open "$selected"
