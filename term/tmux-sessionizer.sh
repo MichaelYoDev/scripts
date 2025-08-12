@@ -3,6 +3,7 @@
 SEARCH_PATHS=(
     "$HOME/.config"
     "$HOME/Desktop/code"
+    "$HOME/Desktop/Notes"
 )
 
 if [[ $# -eq 1 ]]; then

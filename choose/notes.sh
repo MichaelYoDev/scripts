@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 
-folder="$HOME/Notes"
+folder="$HOME/Desktop/Notes"
 term="Ghostty"
+
+if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t notes 2>/dev/null; then
+    tmux new-session -ds notes
+fi
+
+if [[ -z $TMUX ]]; then
+    tmuxStatus="tmux switch-client -t notes"
+else
+    tmuxStatus="tmux attach-session -t notes"
+fi
 
 opennote() {
   osascript <<EOF
@@ -18,6 +28,13 @@ opennote() {
     		click menu item "New Window" of menu 1 of menu bar item "File" of menu bar 1
     	end tell
     end if
+
+    delay 0.2
+
+    tell application "System Events"
+        keystroke "$tmuxStatus"
+        key code 36 -- press return
+    end tell
 
     delay 0.2
 
