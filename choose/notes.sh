@@ -4,7 +4,7 @@ folder="$HOME/Desktop/Notes"
 term="Ghostty"
 
 if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t notes 2>/dev/null; then
-    tmux new-session -ds notes
+    tmux new-session -ds notes -c $folder
 fi
 
 if [[ -z $TMUX ]]; then
@@ -13,8 +13,10 @@ else
     tmuxStatus="tmux attach-session -t notes"
 fi
 
+# yabai -m window --resize right:$((275 - $(yabai -m query --windows --window | jq '.frame.w'))):0
+
 opennote() {
-  osascript <<EOF
+osascript <<EOF
     delay 1
 
     on is_running(appName)
@@ -32,6 +34,13 @@ opennote() {
     delay 0.2
 
     tell application "System Events"
+        keystroke "yabai -m window --warp west"
+        key code 36 -- press return
+    end tell
+
+    delay 0.2
+
+    tell application "System Events"
         keystroke "$tmuxStatus"
         key code 36 -- press return
     end tell
@@ -39,35 +48,39 @@ opennote() {
     delay 0.2
 
     tell application "System Events"
-        keystroke "nvim "
-        keystroke "$folder/$1"
+        keystroke "vim $folder/$1"
         key code 36 -- press return
     end tell
 EOF
 }
 
+    # tell application "System Events"
+    #     keystroke "NVIM_APPNAME=nvim_md nvim $folder/$1"
+    #     key code 36 -- press return
+    # end tell
+
 newnote() {
-  name="$(echo "-" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
+    name="$(echo "-" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
 
-  if [ "$name" = "-" ]; then
-    name="$(date +%F_%T | tr ':' '-')"
-  fi
+    if [ "$name" = "-" ]; then
+        name="$(date +%F_%T | tr ':' '-')"
+    fi
 
-  name="${name}.md"
-  opennote "$name"
+    name="${name}.md"
+    opennote "$name"
 }
 
 selected() {
-  options="New"$'\n'"$(ls -1t "$folder")"
-  choice=$(printf "%s" "$options" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
-  case "$choice" in
-    New)
-        newnote ;;
-    *.md)
-        opennote "$choice";;
-    *)
-        exit ;;
-  esac
+    options="New"$'\n'"$(ls -1t "$folder")"
+    choice=$(printf "%s" "$options" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
+    case "$choice" in
+        New)
+            newnote ;;
+        *.md)
+            opennote "$choice";;
+        *)
+            exit ;;
+    esac
 }
 
 selected
