@@ -10,6 +10,7 @@ if [[ $# -eq 1 ]]; then
     path=$1
 else
     my_find() {
+        echo "home"
         for path in "${SEARCH_PATHS[@]}"; do
             find "$path" -mindepth 0 -maxdepth 2 -type d -not -path "$path/.git"
         done | sed "s|^$HOME/||"
