@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-SEARCH_PATHS=(
+DIRS=(
     "$HOME/.config"
     "$HOME/Desktop/code"
-    "$HOME/Desktop/Notes"
+    "$HOME/Desktop/notes"
 )
 
 if [[ $# -eq 1 ]]; then
@@ -11,8 +11,8 @@ if [[ $# -eq 1 ]]; then
 else
     my_find() {
         echo "home"
-        for path in "${SEARCH_PATHS[@]}"; do
-            find "$path" -mindepth 0 -maxdepth 2 -type d -not -path "$path/.git"
+        for path in "${DIRS[@]}"; do
+            find "$path" -mindepth 0 -maxdepth 1 -type d -not -path "$path/.git"
         done | sed "s|^$HOME/||"
     }
     selected=$(my_find | fzf --tmux 50%,50% --no-color)
@@ -26,7 +26,7 @@ if [[ -z $path ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$path" | tr -s ".[:blank:]" "_" | tr "[:upper:]" "[:lower:]")
+selected_name=$(basename "$path" | tr . _)
 
 tmux_pid=$(pgrep tmux)
 

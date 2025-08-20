@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-folder="$HOME/Desktop/Notes"
+folder="$HOME/Desktop/notes"
 term="Ghostty"
 
 if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t notes 2>/dev/null; then
