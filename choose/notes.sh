@@ -48,14 +48,14 @@ osascript <<EOF
     delay 0.2
 
     tell application "System Events"
-        keystroke "vim $folder/$1"
+        keystroke "NVIM_APPNAME=nvim_md nvim $folder/$1"
         key code 36 -- press return
     end tell
 EOF
 }
 
     # tell application "System Events"
-    #     keystroke "NVIM_APPNAME=nvim_md nvim $folder/$1"
+    #     keystroke "vim $folder/$1"
     #     key code 36 -- press return
     # end tell
 
