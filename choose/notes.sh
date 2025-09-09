@@ -3,6 +3,12 @@
 folder="$HOME/Desktop/notes"
 term="Ghostty"
 
+if [ "$term" = "kitty" ]; then
+    menu='click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1'
+elif [ "$term" = "Ghostty" ]; then
+    menu='click menu item "New Window" of menu 1 of menu bar item "File" of menu bar 1'
+fi
+
 if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t notes 2>/dev/null; then
     tmux new-session -ds notes -c $folder
 fi
@@ -27,7 +33,7 @@ osascript <<EOF
     	tell application "$term" to activate
     else
     	tell application "System Events" to tell process "$term"
-    		click menu item "New Window" of menu 1 of menu bar item "File" of menu bar 1
+    		$menu
     	end tell
     end if
 
@@ -54,11 +60,6 @@ osascript <<EOF
 EOF
 }
 
-    # tell application "System Events"
-    #     keystroke "vim $folder/$1"
-    #     key code 36 -- press return
-    # end tell
-
 newnote() {
     name="$(echo "-" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
 
@@ -71,10 +72,10 @@ newnote() {
 }
 
 selected() {
-    options="New"$'\n'"$(ls -1t "$folder")"
+    options="new"$'\n'"$(ls -1t "$folder")"
     choice=$(printf "%s" "$options" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
     case "$choice" in
-        New)
+        new)
             newnote ;;
         *.md)
             opennote "$choice";;
