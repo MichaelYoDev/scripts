@@ -61,7 +61,7 @@ EOF
 }
 
 newnote() {
-    name="$(echo "-" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
+    name="$(echo "-" | choose -f 'CaskaydiaCove Nerd Font' -b '31748f' -c 'eb6f92' -p 'Enter a name: ' -m)" || exit 0
 
     if [ "$name" = "-" ]; then
         name="$(date +%F_%T | tr ':' '-')"
@@ -73,7 +73,7 @@ newnote() {
 
 selected() {
     options="new"$'\n'"$(ls -1t "$folder")"
-    choice=$(printf "%s" "$options" | choose -f 'JetBrainsMono Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
+    choice=$(printf "%s" "$options" | choose -f 'CaskaydiaCove Nerd Font' -b '31748f' -c 'eb6f92' -p 'Choose note or create new: ')
     case "$choice" in
         new)
             newnote ;;
