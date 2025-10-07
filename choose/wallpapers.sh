@@ -9,7 +9,7 @@ count=$(echo "$wallpapers" | wc -l)
 selection=$(
   ls "$WALLS" | \
     sed 's/\.[^.]*$//' | \
-    choose -f "CaskaydiaCove Nerd Font" -b "31748f" -c "eb6f92" -n $count
+    choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -n $count
 )
 
 # Exit if nothing was selected

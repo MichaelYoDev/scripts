@@ -3,7 +3,7 @@
 selection=$(
   ls "$HOME/.config/scripts/choose" |
     sed 's/\.[^.]*$//' |
-    choose -f "CaskaydiaCove Nerd Font" -b "31748f" -c "eb6f92"
+    choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80"
 )
 
 if [[ -n "$selection" ]]; then

@@ -5,7 +5,7 @@ emojis="$HOME/.config/scripts/stuff/emoji"
 
 selection=$(
     cat "$emojis" | \
-    choose -f "CaskaydiaCove Nerd Font" -b "31748f" -c "eb6f92" | \
+    choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" | \
     sed "s/ .*//"
 )
 

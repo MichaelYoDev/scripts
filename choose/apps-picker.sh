@@ -10,5 +10,5 @@ app_list=$(
 
 app_list=$(echo "$app_list" | sort -u)
 
-choose -f "CaskaydiaCove Nerd Font" -b "31748f" -c "eb6f92" <<< "$app_list" | \
+choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" <<< "$app_list" | \
     xargs -I {} open -a "{}.app" || exit 0
