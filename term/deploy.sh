@@ -2,9 +2,9 @@
 set -euo pipefail
 
 echo
-echo "------------------------------------"
+echo "===================================="
 echo "clean + deply, starting now..."
-echo "------------------------------------"
+echo "----------------------------"
 
 if [[ -d public ]]; then
   find public -mindepth 1 \
@@ -46,5 +46,5 @@ fi
 cd ..
 echo
 echo "done! restarting server…"
-echo "------------------------------------"
+echo "===================================="
 hugo server -D
