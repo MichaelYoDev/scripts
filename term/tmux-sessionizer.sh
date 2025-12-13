@@ -4,6 +4,7 @@ DIRS=(
     "$HOME/.config"
     "$HOME/Desktop/code"
     "$HOME/Desktop/notes"
+    "$HOME/Desktop/website"
 )
 
 if [[ $# -eq 1 ]]; then
