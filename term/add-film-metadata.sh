@@ -1,66 +1,75 @@
 #!/bin/bash
 
-echo "=== Film Scan Metadata Tool ==="
-echo "This script adds camera, lens, film stock, etc. to your images using ExifTool."
+# ===============================================
+#     FILM SCAN METADATA TOOL
+# ===============================================
+# Adds film photography metadata (camera, lens, stock, etc.)
+# to your scanned images using ExifTool.
+# ===============================================
+
+echo -e "\033[1;36m"
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║                FILM SCAN METADATA TOOL                       ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo -e "\033[0m"
+echo "This script embeds camera, lens, film stock, and other metadata"
+echo "into your images for better organization and cataloging."
 echo ""
 
-# Ask for the directory containing the images
-read -p "Path to images folder (default: current folder): " image_dir
+# Input prompts
+read -rp "Path to images folder (default: current): " image_dir
 image_dir=${image_dir:-.}
 
-cd "$image_dir" || { echo "Error: Cannot access directory $image_dir"; exit 1; }
+cd "$image_dir" || { echo -e "\033[1;31mError: Cannot access directory '$image_dir'\033[0m"; exit 1; }
+
 mkdir -p ./originals
 
-# Interactive prompts
-read -p "Film Stock (Make field, e.g. Fujifilm 400): " film_stock
-read -p "Camera Model (e.g. Canon AE-1): " camera_model
-read -p "Lens Model (e.g. Canon FD 50mm f/1.8): " lens_model
-read -p "ISO (e.g. 400): " iso_value
-read -p "Shooting Date (YYYY:MM:DD, e.g. 2026:06:17) [optional]: " shoot_date
-read -p "Image Description (optional, e.g. Roll 1 - Street): " description
-read -p "Extra Keywords (optional, comma separated): " keywords
-
-read -p "File extension to process (default: jpg): " ext
+echo ""
+read -rp "Film Stock (e.g. Portra 400): " film_stock
+read -rp "Camera Model (e.g. Canon AE-1): " camera_model
+read -rp "Lens Model (e.g. Canon FD 50mm f/1.8): " lens_model
+read -rp "Shooting Date (YYYY:MM:DD, optional): " shoot_date
+read -rp "Image Description (optional): " description
+read -rp "Extra Keywords (optional, comma separated): " keywords
+read -rp "File extension to process (default: jpg): " ext
 ext=${ext:-jpg}
 
+echo -e "\n\033[1;32m--------------------------------------------------------------\033[0m"
+echo -e "\033[1;33mApplying metadata to .$ext files:\033[0m"
+echo -e "   $image_dir"
 echo ""
-echo "Applying metadata in folder: $image_dir"
-echo "Make: $film_stock"
-echo "Model: $camera_model"
-echo "Lens: $lens_model"
-echo "ISO: $iso_value"
-if [ -n "$shoot_date" ]; then
-    echo "Date: $shoot_date"
-fi
+echo -e "\033[1;34mFilm Stock:\033[0m $film_stock"
+echo -e "\033[1;34mCamera:\033[0m     $camera_model"
+echo -e "\033[1;34mLens:\033[0m       $lens_model"
+[ -n "$shoot_date" ] && echo -e "\033[1;34mDate:\033[0m       $shoot_date"
+[ -n "$description" ] && echo -e "\033[1;34mDescription:\033[0m $description"
+[ -n "$keywords" ] && echo -e "\033[1;34mKeywords:\033[0m   $keywords"
+echo -e "\033[1;32m--------------------------------------------------------------\033[0m"
 echo ""
 
-# Build the exiftool command
-cmd="exiftool -Make=\"$film_stock\" -Model=\"$camera_model\" -LensModel=\"$lens_model\" -Lens=\"$lens_model\" -ISO=$iso_value"
+# Process files
+shopt -s nullglob
+files=( ./*."$ext" )
 
-if [ -n "$shoot_date" ]; then
-    cmd="$cmd -DateTimeOriginal=\"$shoot_date 00:00:00\""
+if [ ${#files[@]} -eq 0 ]; then
+  echo -e "\033[1;31mNo .$ext files found in the directory.\033[0m"
+  exit 1
 fi
 
-if [ -n "$description" ]; then
-    cmd="$cmd -ImageDescription=\"$description\""
-fi
+echo -e "\033[1;33mApplying metadata to ${#files[@]} file(s)...\033[0m\n"
 
-if [ -n "$keywords" ]; then
-    cmd="$cmd -Keywords=\"$keywords\""
-fi
-
-cmd="$cmd *.$ext"
-
-eval $cmd
-
-echo ""
-echo "Metadata applied successfully!"
-echo "Original files moved to ${image_dir}/originals/"
-
-if ls *_original 1> /dev/null 2>&1; then
-    mv *_original ./originals/
-    echo "Backups moved successfully."
-fi
+exiftool \
+  -overwrite_original \
+  -Make="$film_stock" \
+  -Model="$camera_model" \
+  -LensModel="$lens_model" \
+  -Lens="$lens_model" \
+  -UserComment="film" \
+  ${shoot_date:+-DateTimeOriginal="$shoot_date 00:00:00"} \
+  ${description:+-ImageDescription="$description"} \
+  ${keywords:+-Keywords="$keywords"} \
+  "${files[@]}"
 
 echo ""
-echo "Done!"
+echo -e "\033[0mMetadata applied successfully!"
+echo -e "\033[0mAll done! Original files backed up to ./originals/"

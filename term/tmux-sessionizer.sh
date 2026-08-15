@@ -2,6 +2,7 @@
 
 DIRS=(
     "$HOME/.config"
+    "$HOME/personal-site"
     "$HOME/Desktop/code"
     "$HOME/Desktop/notes"
     "$HOME/Desktop/website"
@@ -16,7 +17,7 @@ else
             find "$path" -mindepth 0 -maxdepth 1 -type d -not -path "$path/.git"
         done | sed "s|^$HOME/||"
     }
-    selected=$(my_find | fzf --tmux 50%,50% --no-color)
+    selected=$(my_find | fzf --height 50% --no-color)
 
     if [[ -n $selected ]]; then
         path="$HOME/$selected"
@@ -27,16 +28,10 @@ if [[ -z $path ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$path" | tr . _)
+existing=$(herdr pane list 2>/dev/null | jq -r --arg cwd "$path" '.result.panes[] | select(.cwd == $cwd) | .workspace_id' | head -1)
 
-tmux_pid=$(pgrep tmux)
-
-if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t "$selected_name" 2>/dev/null; then
-    tmux new-session -ds "$selected_name" -c "$path"
-fi
-
-if [[ -z $TMUX ]]; then
-    tmux attach-session -t "$selected_name"
+if [[ -n $existing ]]; then
+    herdr workspace focus "$existing"
 else
-    tmux switch-client -t "$selected_name"
+    herdr workspace create --cwd "$path" --label "$(basename "$path")" --focus
 fi

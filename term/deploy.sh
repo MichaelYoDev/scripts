@@ -4,10 +4,8 @@ set -euo pipefail
 RESET='\033[0m'
 BOLD='\033[1m'
 GREEN='\033[38;2;167;192;128m'   # Everforest green     #a7c080
-CYAN='\033[38;2;127;187;179m'   # Everforest teal/cyan  #7fbbb3
+BLUE='\033[38;2;127;187;179m'   # Everforest teal/cyan  #7fbbb3
 YELLOW='\033[38;2;219;188;127m' # Everforest yellow     #dbbc7f
-BLUE='\033[38;2;131;192;146m'   # Soft accent           #83c092
-MAGENTA='\033[38;2;214;153;182m' # Subtle magenta        #d699b6
 
 SEP_HEAVY="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 SEP_LIGHT="──────────────────────────────────────────────────────────────────────────────"
@@ -27,27 +25,27 @@ if [[ -d public ]]; then
 fi
 
 echo
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
-echo -e "${BOLD}${CYAN}PUBLIC/ AFTER CLEANING${RESET}"
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
+echo -e "${BOLD}${BLUE}PUBLIC/ AFTER CLEANING${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
 ls -a public || true
 
 echo
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
-echo -e "${BOLD}${CYAN}BUILDING SITE${RESET}"
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
+echo -e "${BOLD}${BLUE}BUILDING SITE${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
 hugo --minify --gc --cleanDestinationDir
 
 echo
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
-echo -e "${BOLD}${CYAN}PUBLIC/ AFTER BUILDING${RESET}"
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
+echo -e "${BOLD}${BLUE}PUBLIC/ AFTER BUILDING${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
 ls -a public
 
 echo
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
-echo -e "${BOLD}${CYAN}DEPLOYING${RESET}"
-echo -e "${CYAN}${SEP_LIGHT}${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
+echo -e "${BOLD}${BLUE}DEPLOYING${RESET}"
+echo -e "${BLUE}${SEP_LIGHT}${RESET}"
 cd public
 git add -A
 if git diff --cached --quiet; then

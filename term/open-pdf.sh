@@ -3,10 +3,10 @@
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    dir=$(tmux run "echo #{pane_start_path}")
-    selected=$(find $dir ~/Downloads ~/Desktop/School/25-26 -mindepth 1 -maxdepth 2 -name "*.pdf" | \
+    dir="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+    selected=$(find "$dir" ~/Downloads ~/Desktop/School/25-26 -mindepth 1 -maxdepth 2 -name "*.pdf" | \
         sed "s|^$HOME/||" | \
-        fzf --tmux 50%,50% --no-color
+        fzf --height 50% --no-color
     )
 
     # Add home path back
@@ -19,8 +19,4 @@ if [[ -z "$selected" ]]; then
     exit 1
 fi
 
-selected_name=$(basename "$selected" | sed 's/\.pdf$//' )
-tmux_running=$(pgrep tmux)
-
-tmux new-window -n  "$selected_name" -d zathura $selected
-tmux select-window -l
+exec zathura "$selected"

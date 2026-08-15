@@ -1,78 +1,71 @@
 #!/usr/bin/env bash
-
 folder="$HOME/Desktop/notes"
+compsci="$folder/compsci"
 term="Ghostty"
-
 if [ "$term" = "kitty" ]; then
     menu='click menu item "New OS Window" of menu 1 of menu bar item "Shell" of menu bar 1'
 elif [ "$term" = "Ghostty" ]; then
     menu='click menu item "New Window" of menu 1 of menu bar item "File" of menu bar 1'
 fi
-
 if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t notes 2>/dev/null; then
     tmux new-session -ds notes -c $folder
 fi
-
 if [[ -z $TMUX ]]; then
     tmuxStatus="tmux switch-client -t notes"
 else
     tmuxStatus="tmux attach-session -t notes"
 fi
-
 # yabai -m window --resize right:$((275 - $(yabai -m query --windows --window | jq '.frame.w'))):0
-
 opennote() {
 osascript <<EOF
     delay 1
-
     on is_running(appName)
-    	tell application "System Events" to (name of processes) contains appName
+     tell application "System Events" to (name of processes) contains appName
     end is_running
-
     if not is_running("$term") then
-    	tell application "$term" to activate
+     tell application "$term" to activate
     else
-    	tell application "System Events" to tell process "$term"
-    		$menu
-    	end tell
+     tell application "System Events" to tell process "$term"
+     $menu
+     end tell
     end if
-
     delay 0.2
-
     tell application "System Events"
         keystroke "yabai -m window --warp west"
         key code 36 -- press return
     end tell
-
     delay 0.2
-
     tell application "System Events"
         keystroke "$tmuxStatus"
         key code 36 -- press return
     end tell
-
     delay 0.2
-
     tell application "System Events"
         keystroke "NVIM_APPNAME=nvim_md nvim $folder/$1"
         key code 36 -- press return
     end tell
 EOF
 }
-
 newnote() {
-    name="$(echo "-" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Enter a name: ' -m)" || exit 0
+    # Ask which folder to create the note in
+    target=$(printf "notes\ncompsci" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Create note in:') || exit 0
 
+    name="$(echo "-" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Enter a name: ' -m)" || exit 0
     if [ "$name" = "-" ]; then
         name="$(date +%F_%T | tr ':' '-')"
     fi
-
     name="${name}.md"
-    opennote "$name"
-}
 
+    if [ "$target" = "compsci" ]; then
+        # Ensure the compsci directory exists
+        mkdir -p "$compsci"
+        opennote "compsci/$name"
+    else
+        opennote "$name"
+    fi
+}
 selected() {
-    options="new"$'\n'"$(ls -1t "$folder")"
+    options="new"$'\n'"$(ls -1t "$folder" 2>/dev/null)"$'\n'"$(ls -1t "$compsci" 2>/dev/null | sed 's|^|compsci/|')"
     choice=$(printf "%s" "$options" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Choose note or create new: ')
     case "$choice" in
         new)
@@ -83,5 +76,4 @@ selected() {
             exit ;;
     esac
 }
-
 selected
