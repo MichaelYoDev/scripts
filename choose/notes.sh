@@ -42,46 +42,56 @@ ensure_workspace() {
     ws=$(herdr --session "$session" workspace list 2>/dev/null | jq -r '.result.workspaces[] | select(.label == "notes") | .workspace_id' | head -1)
     if [ -z "$ws" ]; then
         ws=$(herdr --session "$session" workspace create --cwd "$folder" --label notes --no-focus | jq -r '.result.workspace.workspace_id')
-        sleep 1 # let the root shell reach its prompt
+        sleep 1
     fi
     # Tidy: drop any auto-created default workspace so only "notes" remains.
     for w in $(herdr --session "$session" workspace list 2>/dev/null | jq -r '.result.workspaces[].workspace_id'); do
         [ "$w" != "$ws" ] && herdr --session "$session" workspace close "$w" >/dev/null 2>&1
     done
-    # The workspace's dedicated nvim pane (first pane). A fresh server restore can
-    # lag behind the workspace listing, so retry until the pane actually shows up.
-    pane=""
-    for i in 1 2 3; do
-        pane=$(herdr --session "$session" pane list --workspace "$ws" 2>/dev/null | jq -r '.result.panes[0].pane_id // empty')
-        [ -n "$pane" ] && break
-        sleep 1
-    done
-    if [ -z "$pane" ]; then
-        # workspace exists but has no pane yet: force a root pane via a new tab
-        herdr --session "$session" tab create --workspace "$ws" --cwd "$folder" >/dev/null 2>&1
-        sleep 1
-        pane=$(herdr --session "$session" pane list --workspace "$ws" 2>/dev/null | jq -r '.result.panes[0].pane_id // empty')
-    fi
 }
 
 opennote() {
     local file="$1"
-    [ -z "$pane" ] && ensure_workspace
-    [ -z "$pane" ] && return 1
-    local nvim_running
-    nvim_running=$(herdr --session "$session" pane process-info --pane "$pane" 2>/dev/null | jq -r '.result.process_info.foreground_processes[0].name // empty')
-    if [ "$nvim_running" = "nvim" ]; then
-        # nvim already running: load the file as a buffer (:e keeps old buffers reachable)
-        herdr --session "$session" pane send-keys "$pane" esc
-        herdr --session "$session" pane send-text "$pane" ":e $file"
-        herdr --session "$session" pane send-keys "$pane" enter
+    [ -z "$ws" ] && ensure_workspace
+    [ -z "$ws" ] && return 1
+
+    local note_name
+    if [[ "$file" == compsci/* ]]; then
+        # compsci: abbreviate course name (first 3 chars per camelCase word) + section
+        local course section
+        course=$(echo "$file" | sed 's|compsci/||; s|/[^/]*$||')
+        section=$(basename "$file" .md)
+        note_name="$(echo "$course" | sed 's/\([A-Z]\)/_\1/g' | tr '_' '\n' | cut -c1-3 | tr -d '\n')/$section"
     else
-        # first open: launch nvim in the pane
-        for i in 1 2 3; do
-            herdr --session "$session" pane run "$pane" "NVIM_APPNAME=nvim_md nvim '$file'" && break
-            sleep 1
-        done
+        note_name=$(basename "$file" .md)
     fi
+
+    # Check if a tab with this note name already exists
+    local existing_tab
+    existing_tab=$(herdr --session "$session" tab list 2>/dev/null | jq -r --arg label "$note_name" '.result.tabs[] | select(.label == $label) | .tab_id' | head -1)
+
+    if [ -n "$existing_tab" ]; then
+        herdr --session "$session" tab focus "$existing_tab" 2>/dev/null
+        return 0
+    fi
+
+    # Not found — create a new tab, label it with the note name
+    local new_tab new_pane
+    new_tab=$(herdr --session "$session" tab create --workspace "$ws" --cwd "$folder" --label "$note_name" --no-focus 2>/dev/null | jq -r '.result.tab.tab_id')
+    [ -z "$new_tab" ] && return 1
+
+    # Find the root pane inside the new tab
+    new_pane=$(herdr --session "$session" pane list --workspace "$ws" 2>/dev/null | jq -r --arg tab "$new_tab" '.result.panes[] | select(.tab_id == $tab) | .pane_id' | head -1)
+    [ -z "$new_pane" ] && return 1
+
+    # Launch nvim in the new pane
+    for i in 1 2 3; do
+        herdr --session "$session" pane run "$new_pane" "NVIM_APPNAME=nvim_md nvim '$file'" && break
+        sleep 1
+    done
+
+    # Switch to the new tab
+    herdr --session "$session" tab focus "$new_tab" 2>/dev/null
 }
 
 show_window() {
@@ -125,7 +135,7 @@ newnote() {
 }
 
 selected() {
-    options="new"$'\n'"$(ls -1t "$folder" 2>/dev/null)"$'\n'"$(ls -1t "$compsci" 2>/dev/null | sed 's|^|compsci/|')"
+    options="new"$'\n'"$(ls -1t "$folder" 2>/dev/null)"$'\n'"$(find "$compsci" -name "*.md" -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | cut -d' ' -f2- | sed "s|^$folder/||")"
     choice=$(printf "%s" "$options" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Choose note or create new: ')
     case "$choice" in
         new)
