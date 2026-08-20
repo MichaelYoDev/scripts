@@ -116,7 +116,6 @@ EOF
 }
 
 newnote() {
-    # Ask which folder to create the note in
     target=$(printf "notes\ncompsci" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Create note in:') || exit 0
 
     name="$(echo "-" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Enter a name: ' -m)" || exit 0
@@ -126,9 +125,15 @@ newnote() {
     name="${name}.md"
 
     if [ "$target" = "compsci" ]; then
-        # Ensure the compsci directory exists
-        mkdir -p "$compsci"
-        opennote "compsci/$name"
+        # List existing course subfolders + "new course" option
+        courses=$(find "$compsci" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null)
+        course=$(printf "%s\nnew course" "$courses" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course:') || exit 0
+        if [ "$course" = "new course" ]; then
+            course="$(echo "" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course name: ' -m)" || exit 0
+            [ -z "$course" ] && exit 0
+        fi
+        mkdir -p "$compsci/$course"
+        opennote "compsci/$course/$name"
     else
         opennote "$name"
     fi
