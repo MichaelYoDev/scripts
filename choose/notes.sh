@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+# skhd's app service does not inherit the interactive shell's Homebrew PATH.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 folder="$HOME/Desktop/notes"
 compsci="$folder/compsci"
+colburn="$folder/colburn"
 term="Ghostty"
 session="notes"
 if [ "$term" = "kitty" ]; then
@@ -21,20 +24,15 @@ fi
 ensure_session() {
     # Server running? (herdr CLI does not auto-start a session's server.)
     herdr --session "$session" workspace list >/dev/null 2>&1 && return 0
-    # First run after a reboot: boot it with a throwaway PTY client. The server
-    # keeps running after the client exits, so the window later just attaches.
-    ( env -u HERDR_ENV -u HERDR_SOCKET_PATH \
-        script -q /dev/null herdr --session "$session" >/dev/null 2>&1 &
-        client=$!
-        for i in 1 2 3 4 5 6 7 8 9 10; do
-            herdr --session "$session" workspace list >/dev/null 2>&1 && {
-                kill "$client" 2>/dev/null
-                return 0
-            }
-            sleep 1
-        done
-        kill "$client" 2>/dev/null
-        return 1 )
+    # Start without a terminal; script(1)'s PTY can have a zero-sized grid.
+    nohup env -u HERDR_ENV -u HERDR_SOCKET_PATH \
+        herdr --session "$session" server </dev/null >/dev/null 2>&1 &
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+        herdr --session "$session" workspace list >/dev/null 2>&1 && return 0
+        sleep 1
+    done
+    echo "notes: could not start Herdr session '$session'" >&2
+    return 1
 }
 
 ensure_workspace() {
@@ -56,10 +54,11 @@ opennote() {
     [ -z "$ws" ] && return 1
 
     local note_name
-    if [[ "$file" == compsci/* ]]; then
-        # compsci: abbreviate course name (first 3 chars per camelCase word) + section
-        local course section
-        course=$(echo "$file" | sed 's|compsci/||; s|/[^/]*$||')
+    if [[ "$file" == compsci/* || "$file" == colburn/* ]]; then
+        # course folders: abbreviate course name (first 3 chars per camelCase word) + section
+        local root course section
+        root=$(echo "$file" | cut -d/ -f1)
+        course=$(echo "$file" | sed "s|$root/||; s|/[^/]*$||")
         section=$(basename "$file" .md)
         note_name="$(echo "$course" | sed 's/\([A-Z]\)/_\1/g' | tr '_' '\n' | cut -c1-3 | tr -d '\n')/$section"
     else
@@ -73,6 +72,13 @@ opennote() {
     if [ -n "$existing_tab" ]; then
         herdr --session "$session" tab focus "$existing_tab" 2>/dev/null
         return 0
+    fi
+
+    # Desktop notes may be iCloud placeholders. Read them fully before nvim
+    # opens them, so a failed download cannot leave an empty read-only buffer.
+    if [ -f "$folder/$file" ] && ! cat "$folder/$file" >/dev/null; then
+        echo "notes: could not download/read '$file'" >&2
+        return 1
     fi
 
     # Not found — create a new tab, label it with the note name
@@ -116,14 +122,20 @@ EOF
 }
 
 newnote() {
-    target=$(printf "notes\ncompsci" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Create note in:') || exit 0
+    target=$(printf "notes\ncompsci\ncolburn" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Create note in:') || exit 0
 
-    if [ "$target" = "compsci" ]; then
-        courses=$(find "$compsci" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null)
-        course=$(printf "%s\nnew course" "$courses" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course:') || exit 0
+    if [ "$target" != "notes" ]; then
+        rootdir="$folder/$target"
+        courses=$(find "$rootdir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null)
+        if [ -n "$courses" ]; then
+            menu_items="$courses"$'\n'"new course"
+        else
+            menu_items="new course"
+        fi
+        course=$(printf "%s" "$menu_items" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course:') || exit 0
         if [ "$course" = "new course" ]; then
-            course="$(echo "" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course name: ' -m)" || exit 0
-            [ -z "$course" ] && exit 0
+            course="$(echo "-" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Course name: ' -m)" || exit 0
+            [ "$course" = "-" ] && exit 0
         fi
     fi
 
@@ -133,16 +145,16 @@ newnote() {
     fi
     name="${name}.md"
 
-    if [ "$target" = "compsci" ]; then
-        mkdir -p "$compsci/$course"
-        opennote "compsci/$course/$name"
-    else
+    if [ "$target" = "notes" ]; then
         opennote "$name"
+    else
+        mkdir -p "$folder/$target/$course"
+        opennote "$target/$course/$name"
     fi
 }
 
 selected() {
-    options="new"$'\n'"$(ls -1t "$folder" 2>/dev/null)"$'\n'"$(find "$compsci" -name "*.md" -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | cut -d' ' -f2- | sed "s|^$folder/||")"
+    options="new"$'\n'"$(ls -1t "$folder"/*.md 2>/dev/null | sed "s|^$folder/||")"$'\n'"$(find "$compsci" "$colburn" -name "*.md" -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | cut -d' ' -f2- | sed "s|^$folder/||")"
     choice=$(printf "%s" "$options" | choose -f "CaskaydiaCove Nerd Font" -b "7fbbb3" -c "e67e80" -p 'Choose note or create new: ')
     case "$choice" in
         new)
